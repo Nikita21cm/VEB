@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Центры сбора - EcoNova</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .search-container { text-align: center; margin-bottom: 20px; }
+    .search-container input { padding: 10px; width: 280px; border: 1px solid #333; border-radius: 4px; background: #2a2a2a; color: #e0e0e0; }
+    .search-container button { padding: 10px 20px; margin-left: 10px; border: none; background: #bb86fc; color: #121212; border-radius: 4px; cursor: pointer; transition: background 0.3s; }
+    .search-container button:hover { background: #9c6dd0; }
+    .form-container { max-width: 500px; margin: 20px auto; padding: 20px; background: #1c1c1c; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.8); }
+    .form-container input { width: 100%; margin: 8px 0; padding: 10px; border: 1px solid #333; border-radius: 4px; background: #2a2a2a; color: #e0e0e0; }
+    .form-container button { width: 100%; padding: 10px 20px; border: none; background: #bb86fc; color: #121212; border-radius: 4px; cursor: pointer; }
+    .form-container button:hover { background: #9c6dd0; }
+    .card { background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.7); }
+    .card button { margin-right: 10px; padding: 8px 12px; border: none; background: #bb86fc; color: #121212; border-radius: 4px; cursor: pointer; }
+    .card button:hover { background: #9c6dd0; }
+  </style>
+</head>
+<body>
+  <header class="sub-header">
+    <div class="container nav-wrapper">
+      <h1>Центры сбора</h1>
+      <nav class="sub-nav">
+        <a href="index.html" class="nav-link">Главная</a>
+        <a href="dashboard.html" class="nav-link">Кабинет</a>
+        <a href="waste_types.html" class="nav-link">Категории</a>
+        <a href="https://t.me/YourBotUsername" class="nav-link" target="_blank">TG Бот</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <section class="search-container">
+      <input type="text" id="searchInput" placeholder="Поиск по местоположению">
+      <button id="searchBtn">Поиск</button>
+      <button id="clearSearchBtn">Сбросить</button>
+    </section>
+    <section class="form-container">
+      <h2>Добавить новый центр сбора</h2>
+      <input type="text" id="pointLocation" placeholder="Местоположение" required>
+      <input type="number" id="pointCapacity" placeholder="Вместимость" required>
+      <button id="addPointBtn">Сохранить</button>
+    </section>
+    <section>
+      <h2>Список центров сбора</h2>
+      <div id="pointList">
+        <!-- Список загрузится скриптом -->
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <p>&copy; 2025 EcoNova Hub</p>
+  </footer>
+  <script>
+    async function loadCollectionPoints(query = "") {
+      try {
+        let url = 'http://localhost:3000/api/collection_points';
+        if(query) { url += `?q=${encodeURIComponent(query)}`; }
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        const points = await response.json();
+        const listDiv = document.getElementById('pointList');
+        listDiv.innerHTML = '';
+        points.forEach(point => {
+          const div = document.createElement('div');
+          div.classList.add('card');
+          div.innerHTML = `
+            <p><strong>ID:</strong> ${point.id}</p>
+            <p><strong>Местоположение:</strong> <span class="point-location">${point.location}</span></p>
+            <p><strong>Вместимость:</strong> <span class="point-capacity">${point.capacity}</span></p>
+            <button onclick="editPoint(${point.id}, this)">Редактировать</button>
+            <button onclick="deletePoint(${point.id})">Удалить</button>
+          `;
+          listDiv.appendChild(div);
+        });
+      } catch (err) {
+        alert('Ошибка загрузки центров: ' + err.message);
+      }
+    }
+
+    async function addCollectionPoint() {
+      const location = document.getElementById('pointLocation').value;
+      const capacity = document.getElementById('pointCapacity').value;
+      try {
+        const response = await fetch('http://localhost:3000/api/collection_points', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ location, capacity })
+        });
+        if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        document.getElementById('pointLocation').value = '';
+        document.getElementById('pointCapacity').value = '';
+        loadCollectionPoints();
+      } catch (err) {
+        alert('Ошибка добавления центра: ' + err.message);
+      }
+    }
+
+    async function editPoint(id, btn) {
+      const card = btn.parentElement;
+      const currentLocation = card.querySelector('.point-location').textContent;
+      const currentCapacity = card.querySelector('.point-capacity').textContent;
+      const newLocation = prompt("Новое местоположение", currentLocation);
+      if(newLocation === null) return;
+      const newCapacity = prompt("Новая вместимость", currentCapacity);
+      if(newCapacity === null) return;
+      try {
+        const response = await fetch(`http://localhost:3000/api/collection_points/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ location: newLocation, capacity: newCapacity })
+        });
+        if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        loadCollectionPoints();
+      } catch (err) {
+        alert('Ошибка обновления центра: ' + err.message);
+      }
+    }
+
+    async function deletePoint(id) {
+      if(!confirm("Удалить этот центр?")) return;
+      try {
+        const response = await fetch(`http://localhost:3000/api/collection_points/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        loadCollectionPoints();
+      } catch (err) {
+        alert('Ошибка удаления центра: ' + err.message);
+      }
+    }
+
+    document.getElementById('addPointBtn').addEventListener('click', addCollectionPoint);
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      const query = document.getElementById('searchInput').value;
+      loadCollectionPoints(query);
+    });
+    document.getElementById('clearSearchBtn').addEventListener('click', () => {
+      document.getElementById('searchInput').value = '';
+      loadCollectionPoints();
+    });
+
+    loadCollectionPoints();
+  </script>
+</body>
+</html>

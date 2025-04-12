@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EcoNova Hub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Дополнительные анимации для главной страницы */
+    .animated-title {
+      opacity: 0;
+      animation: slideInFromLeft 1s forwards;
+    }
+    @keyframes slideInFromLeft {
+      from { transform: translateX(-50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .feature-card {
+      opacity: 0;
+      animation: fadeInUp 1s forwards;
+    }
+    @keyframes fadeInUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .fadeInSection {
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+      animation-delay: 0.5s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="main-header">
+    <div class="nav-wrapper">
+      <div class="logo">
+        <h1 class="animated-title">EcoNova Hub</h1>
+      </div>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link active">Главная</a>
+        <a href="register.html" class="nav-link">Регистрация</a>
+        <a href="login.html" class="nav-link">Вход</a>
+        <a href="dashboard.html" class="nav-link">Кабинет</a>
+        <a href="waste_types.html" class="nav-link">Категории</a>
+        <a href="collection_points.html" class="nav-link">Центры</a>
+        <a href="chat.html" class="nav-link" target="_blank">AI Чат</a>
+        <a href="https://t.me/Ecology_helpers_bot" class="nav-link" target="_blank">TG Бот</a>
+      </nav>
+    </div>
+  </header>
+  <section class="hero-section">
+    <div class="hero-content fadeInSection">
+      <h2 class="animated-title">Добро пожаловать в EcoNova Hub</h2>
+      <p>Мы объединили технологии и экологическое мышление для создания лучшего будущего нашей планеты. Узнайте, как вы можете участвовать в переработке отходов и получать бонусы за свои действия.</p>
+      <!-- Стильная кнопка-приглашение -->
+      <a href="dashboard.html" class="btn action-btn">Перейти в личный кабинет</a>
+    </div>
+  </section>
+  <section class="info-section fadeInSection">
+    <div class="feature-card" style="animation-delay: 0.3s;">
+      <h3>Наша миссия</h3>
+      <p>Создаем устойчивую систему переработки отходов, помогая каждому внести свой вклад в сохранение природы.</p>
+    </div>
+    <div class="feature-card" style="animation-delay: 0.6s;">
+      <h3>Наши услуги</h3>
+      <p>Управление данными об отходах, поддержка через AI чат и оперативное взаимодействие с центрами сбора.</p>
+    </div>
+    <div class="feature-card" style="animation-delay: 0.9s;">
+      <h3>Преимущества</h3>
+      <p>Получайте бонусы за переработку, улучшайте свою экологическую статистику и станьте частью сообщества.</p>
+    </div>
+  </section>
+  <section class="news-section fadeInSection">
+    <h2 class="animated-title">Новости и события</h2>
+    <div class="news-cards">
+      <div class="card feature-card" style="animation-delay: 0.4s;">
+        <h3>Экологический форум 2025</h3>
+        <p>Присоединяйтесь к крупнейшему форуму по устойчивому развитию и переработке отходов.</p>
+      </div>
+      <div class="card feature-card" style="animation-delay: 0.7s;">
+        <h3>Партнёрская программа</h3>
+        <p>Участвуйте в программе сотрудничества и получайте дополнительные бонусы.</p>
+      </div>
+      <div class="card feature-card" style="animation-delay: 1s;">
+        <h3>Новые центры сбора</h3>
+        <p>Узнайте о новых пунктах приёма отходов в вашем регионе.</p>
+      </div>
+    </div>
+  </section>
+  <footer class="site-footer">
+    <p>&copy; 2025 EcoNova Hub. Все права защищены.</p>
+  </footer>
+  <script>
+    // Пример анимации появления при прокрутке (если нужно)
+    const faders = document.querySelectorAll('.fadeInSection');
+    const appearOptions = { threshold: 0.3 };
+    const appearOnScroll = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('appear');
+        appearOnScroll.unobserve(entry.target);
+      });
+    }, appearOptions);
+    faders.forEach(fader => appearOnScroll.observe(fader));
+  </script>
+</body>
+</html>

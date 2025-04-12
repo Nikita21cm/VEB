@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Кабинет - EcoNova Hub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Дополнительные стили для отчетов */
+    .report-box { margin-bottom: 20px; padding: 15px; background: #2a2a2a; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+    .report-box p { margin: 5px 0; }
+    .report-box button { margin-right: 8px; padding: 6px 10px; border: none; background: #bb86fc; color: #121212; border-radius: 4px; cursor: pointer; }
+    .report-box button:hover { background: #9c6dd0; }
+    /* Центрирование формы добавления отчета */
+    .report-form-container {
+      max-width: 500px;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+  <header class="sub-header">
+    <div class="container nav-wrapper">
+      <h1>Личный кабинет</h1>
+      <nav class="sub-nav">
+        <a href="index.html" class="nav-link">Главная</a>
+        <a href="waste_types.html" class="nav-link">Категории</a>
+        <a href="collection_points.html" class="nav-link">Центры</a>
+        <a href="chat.html" class="nav-link" target="_blank">AI Чат</a>
+        <a href="https://t.me/YourBotUsername" class="nav-link" target="_blank">TG Бот</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <section id="userInfo" class="info-box">
+      <h2>Здравствуйте, <span id="username">Пользователь</span>!</h2>
+      <p>ID: <span id="userId">-</span></p>
+    </section>
+    <section id="addReportSection" class="form-page report-form-container">
+      <h2>Добавить отчёт</h2>
+      <form id="reportForm" class="form-box">
+        <input type="number" id="wasteTypeId" placeholder="Категория (ID)" required>
+        <input type="number" id="collectionPointId" placeholder="Центр (ID)" required>
+        <input type="number" step="0.01" id="reportWeight" placeholder="Вес (кг)" required>
+        <input type="date" id="reportDate" required>
+        <button type="submit" class="btn submit-btn">Добавить</button>
+      </form>
+    </section>
+    <section id="reportsSection">
+      <h2>Мои отчёты</h2>
+      <div id="reportsContainer">
+        <!-- Отчёты загрузятся сюда -->
+      </div>
+    </section>
+    <section id="contributionSection" class="info-box">
+      <h2>Ваш вклад и достижения</h2>
+      <div id="contributionContainer" class="message-box">
+        <p>Общий вес: <span id="totalWeight">0</span> кг</p>
+        <p>Эко-бонусы: <span id="ecoPoints">0</span></p>
+        <div id="achievementsList"></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <p>&copy; 2025 EcoNova Hub. Все права защищены.</p>
+  </footer>
+  <script>
+    const user = JSON.parse(localStorage.getItem('user'));
+    if(!user){
+      window.location.href = "login.html";
+    } else {
+      document.getElementById('username').textContent = user.username;
+      document.getElementById('userId').textContent = user.id;
+      loadReports(user.id);
+      loadContribution(user.id);
+    }
+    
+    async function loadReports(userId) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/reports?user_id=${userId}`);
+        if(!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        const reports = await response.json();
+        const container = document.getElementById('reportsContainer');
+        container.innerHTML = '';
+        if(reports.length === 0) {
+          container.innerHTML = '<p>Нет отчётов.</p>';
+        } else {
+          reports.forEach(rep => {
+            const div = document.createElement('div');
+            div.classList.add('card', 'report-box');
+            div.innerHTML = `
+              <p><strong>ID:</strong> ${rep.id}</p>
+              <p><strong>Категория:</strong> ${rep.waste_type_id}</p>
+              <p><strong>Центр:</strong> ${rep.collection_point_id}</p>
+              <p><strong>Вес:</strong> ${rep.weight} кг</p>
+              <p><strong>Дата:</strong> ${rep.report_date}</p>
+              <button onclick="editReport(${rep.id}, this)">Редактировать</button>
+              <button onclick="deleteReport(${rep.id})">Удалить</button>
+            `;
+            container.appendChild(div);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    async function addReport(event) {
+      event.preventDefault();
+      const data = {
+        user_id: user.id,
+        waste_type_id: document.getElementById('wasteTypeId').value,
+        collection_point_id: document.getElementById('collectionPointId').value,
+        weight: document.getElementById('reportWeight').value,
+        report_date: document.getElementById('reportDate').value
+      };
+      try {
+        const response = await fetch('http://localhost:3000/api/reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if(!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        document.getElementById('reportForm').reset();
+        loadReports(user.id);
+        loadContribution(user.id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    async function editReport(reportId, btn) {
+      const card = btn.parentElement;
+      const currentType = card.querySelector('p:nth-child(2)').textContent.split(':')[1].trim();
+      const currentPoint = card.querySelector('p:nth-child(3)').textContent.split(':')[1].trim();
+      const currentWeight = card.querySelector('p:nth-child(4)').textContent.split(':')[1].trim().split(' ')[0];
+      const currentDate = card.querySelector('p:nth-child(5)').textContent.split(':')[1].trim();
+      
+      const newType = prompt("Новый ID категории:", currentType);
+      if(newType === null) return;
+      const newPoint = prompt("Новый ID центра:", currentPoint);
+      if(newPoint === null) return;
+      const newWeight = prompt("Новый вес (кг):", currentWeight);
+      if(newWeight === null) return;
+      const newDate = prompt("Новая дата (YYYY-MM-DD):", currentDate);
+      if(newDate === null) return;
+      
+      const data = {
+        user_id: user.id,
+        waste_type_id: newType,
+        collection_point_id: newPoint,
+        weight: newWeight,
+        report_date: newDate
+      };
+      
+      try {
+        const response = await fetch(`http://localhost:3000/api/reports/${reportId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if(!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        loadReports(user.id);
+        loadContribution(user.id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    async function deleteReport(reportId) {
+      if(!confirm("Удалить этот отчёт?")) return;
+      try {
+        const response = await fetch(`http://localhost:3000/api/reports/${reportId}`, {
+          method: 'DELETE'
+        });
+        if(!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        loadReports(user.id);
+        loadContribution(user.id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    document.getElementById('reportForm').addEventListener('submit', addReport);
+    
+    async function loadContribution(userId) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/contribution?user_id=${userId}`);
+        if(!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        const data = await response.json();
+        document.getElementById('totalWeight').textContent = data.totalWeight || 0;
+        document.getElementById('ecoPoints').textContent = data.points || 0;
+        loadAchievements(data.points || 0);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    function loadAchievements(points) {
+      const achievementsList = document.getElementById('achievementsList');
+      let html = "";
+      if (points >= 1000) {
+        html += "<p>🏆 Мастер переработки: свыше 1000 бонусов!</p>";
+      } else if (points >= 500) {
+        html += "<p>🥈 Опытный переработчик: свыше 500 бонусов!</p>";
+      } else if (points >= 100) {
+        html += "<p>🥉 Начинающий переработчик: свыше 100 бонусов!</p>";
+      } else {
+        html += "<p>Достижения отсутствуют. Добавляйте отчёты для бонусов!</p>";
+      }
+      achievementsList.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

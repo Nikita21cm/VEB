@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Чат - EcoNova Hub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .chat-container {
+      background: #1c1c1c;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+      max-width: 700px;
+      margin: 40px auto;
+    }
+    .chat-log {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 15px;
+      height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+    .chat-message {
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: opacity 0.3s ease;
+    }
+    .chat-message.user {
+      text-align: right;
+      background: #bb86fc;
+      color: #121212;
+    }
+    .chat-message.ai {
+      text-align: left;
+      background: #9c6dd0;
+      color: #fff;
+    }
+    .chat-input {
+      width: calc(100% - 30px);
+      padding: 12px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #2a2a2a;
+      color: #e0e0e0;
+    }
+    .chat-send {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: #bb86fc;
+      color: #121212;
+      border-radius: 4px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .chat-send:hover {
+      background: #9c6dd0;
+    }
+  </style>
+</head>
+<body>
+  <header class="sub-header">
+    <div class="container nav-wrapper">
+      <h1>AI Чат</h1>
+      <nav class="sub-nav">
+        <a href="index.html" class="nav-link">Главная</a>
+        <a href="dashboard.html" class="nav-link">Кабинет</a>
+        <a href="waste_types.html" class="nav-link">Категории</a>
+        <a href="collection_points.html" class="nav-link">Центры</a>
+      </nav>
+    </div>
+  </header>
+  <main class="chat-container">
+    <div id="chatLog" class="chat-log"></div>
+    <input id="chatInput" class="chat-input" type="text" placeholder="Введите сообщение..." autofocus>
+    <button id="sendBtn" class="chat-send">Отправить</button>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 EcoNova Hub</p>
+    </div>
+  </footer>
+  <script>
+    const chatLog = document.getElementById('chatLog');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    
+    function appendMessage(sender, text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('chat-message', sender);
+      msgDiv.textContent = text;
+      chatLog.appendChild(msgDiv);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+    
+    async function sendMessage() {
+      const userMessage = chatInput.value.trim();
+      if (!userMessage) return;
+      appendMessage('user', 'Вы: ' + userMessage);
+      chatInput.value = '';
+      const payload = { message: userMessage };
+      try {
+        const response = await fetch("http://127.0.0.1:5000/chat", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error("Ошибка: " + response.status);
+        const data = await response.json();
+        const aiReply = data.response || "Ответ не получен.";
+        appendMessage('ai', 'ИИ: ' + aiReply);
+      } catch (error) {
+        appendMessage('ai', 'Ошибка: ' + error.message);
+      }
+    }
+    
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keyup', event => {
+      if (event.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+</html>

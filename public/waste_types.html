@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Категории отходов - EcoNova Hub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Переопределение стилей для полей ввода на этой странице */
+    .form-container input {
+      background-color: #2a2a2a !important;
+      color: #e0e0e0 !important;
+      border: 1px solid #333 !important;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    /* Стилизация таблицы категорий */
+    .categories-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .categories-table th,
+    .categories-table td {
+      padding: 10px;
+      border: 1px solid #333;
+      text-align: left;
+    }
+    .categories-table th {
+      background-color: #1c1c1c;
+    }
+    /* Переопределяем стили для кнопок внутри таблицы категорий */
+    .categories-table button {
+      background-color: #bb86fc;
+      color: #121212;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      margin-right: 8px;
+    }
+    .categories-table button:hover {
+      background-color: #9c6dd0;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <header class="sub-header">
+    <div class="container nav-wrapper">
+      <h1>Категории отходов</h1>
+      <nav class="sub-nav">
+        <a href="index.html" class="nav-link">Главная</a>
+        <a href="dashboard.html" class="nav-link">Кабинет</a>
+        <a href="collection_points.html" class="nav-link">Центры</a>
+        <a href="https://t.me/YourBotUsername" class="nav-link" target="_blank">TG Бот</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <!-- Форма добавления новой категории -->
+    <section class="form-container">
+      <h2>Добавить новую категорию</h2>
+      <input type="text" id="typeName" placeholder="Название категории" required>
+      <input type="text" id="typeDesc" placeholder="Описание">
+      <button id="addTypeBtn" class="btn submit-btn">Добавить категорию</button>
+    </section>
+    <!-- Таблица со списком категорий -->
+    <section>
+      <h2>Список категорий</h2>
+      <table class="categories-table" id="typesTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Описание</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Данные заполнятся скриптом -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 EcoNova Hub</p>
+    </div>
+  </footer>
+  <script>
+    async function loadWasteTypes() {
+      try {
+        const response = await fetch('http://localhost:3000/api/waste_types');
+        if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        const types = await response.json();
+        const tbody = document.querySelector('#typesTable tbody');
+        tbody.innerHTML = '';
+        types.forEach(type => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${type.id}</td>
+            <td>${type.type_name}</td>
+            <td>${type.description}</td>
+            <td>
+              <button onclick="editType(${type.id}, this)">Редактировать</button>
+              <button onclick="deleteType(${type.id})">Удалить</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        alert('Ошибка загрузки категорий: ' + err.message);
+      }
+    }
+    
+    async function addWasteType() {
+      const typeName = document.getElementById('typeName').value;
+      const typeDesc = document.getElementById('typeDesc').value;
+      if (!typeName) {
+        alert("Введите название категории");
+        return;
+      }
+      try {
+        const response = await fetch('http://localhost:3000/api/waste_types', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type_name: typeName, description: typeDesc })
+        });
+        if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        document.getElementById('typeName').value = '';
+        document.getElementById('typeDesc').value = '';
+        loadWasteTypes();
+      } catch (err) {
+        alert('Ошибка добавления категории: ' + err.message);
+      }
+    }
+    
+    async function editType(id, btn) {
+      const row = btn.parentElement.parentElement;
+      const currentName = row.cells[1].textContent;
+      const currentDesc = row.cells[2].textContent;
+      const newName = prompt("Введите новое название", currentName);
+      if(newName === null) return;
+      const newDesc = prompt("Введите новое описание", currentDesc);
+      try {
+        const response = await fetch(`http://localhost:3000/api/waste_types/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type_name: newName, description: newDesc })
+        });
+        if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        loadWasteTypes();
+      } catch (err) {
+        alert('Ошибка обновления категории: ' + err.message);
+      }
+    }
+    
+    async function deleteType(id) {
+      if (!confirm("Удалить эту категорию?")) return;
+      try {
+        const response = await fetch(`http://localhost:3000/api/waste_types/${id}`, {
+          method: 'DELETE'
+        });
+        if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+        loadWasteTypes();
+      } catch (err) {
+        alert('Ошибка удаления категории: ' + err.message);
+      }
+    }
+    
+    document.getElementById('addTypeBtn').addEventListener('click', addWasteType);
+    
+    loadWasteTypes();
+  </script>
+</body>
+</html>

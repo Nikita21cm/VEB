@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Регистрация - EcoNova Hub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Центрирование формы регистрации */
+    .form-container {
+      max-width: 400px;
+      margin: 40px auto;
+      background: #1c1c1c;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+    }
+    .form-container input, .form-container button {
+      width: 100%;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <header class="sub-header">
+    <h1>Регистрация</h1>
+    <nav class="sub-nav">
+      <a href="index.html" class="nav-link">Главная</a>
+      <a href="login.html" class="nav-link">Вход</a>
+    </nav>
+  </header>
+  <main class="form-page">
+    <div class="form-container">
+      <form id="registerForm" class="form-box">
+        <input type="text" name="username" placeholder="Ваше имя" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Пароль" required>
+        <button type="submit" class="btn submit-btn">Зарегистрироваться</button>
+      </form>
+      <div id="message" class="message-box"></div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <p>&copy; 2025 EcoNova Hub</p>
+  </footer>
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        username: form.username.value,
+        email: form.email.value,
+        password: form.password.value
+      };
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        const msgDiv = document.getElementById('message');
+        if (res.status === 201) {
+          msgDiv.innerHTML = '<p>Успешная регистрация! Теперь войдите в систему.</p>';
+          form.reset();
+        } else {
+          msgDiv.innerHTML = `<p>${result.message}</p>`;
+        }
+      } catch (error) {
+        console.error('Ошибка регистрации', error);
+      }
+    });
+  </script>
+</body>
+</html>
