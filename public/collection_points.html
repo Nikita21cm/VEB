@@ -56,7 +56,7 @@
   <script>
     async function loadCollectionPoints(query = "") {
       try {
-        let url = 'http://localhost:3000/api/collection_points';
+        let url = 'http://45.144.67.254:3000/api/collection_points';
         if(query) { url += `?q=${encodeURIComponent(query)}`; }
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
@@ -107,7 +107,7 @@
       const newCapacity = prompt("Новая вместимость", currentCapacity);
       if(newCapacity === null) return;
       try {
-        const response = await fetch(`http://45.144.67.254:3000//api/collection_points/${id}`, {
+        const response = await fetch(`http://45.144.67.254:3000/api/collection_points/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ location: newLocation, capacity: newCapacity })
@@ -122,7 +122,7 @@
     async function deletePoint(id) {
       if(!confirm("Удалить этот центр?")) return;
       try {
-        const response = await fetch(`http://45.144.67.254:3000//api/collection_points/${id}`, { method: 'DELETE' });
+        const response = await fetch(`http://45.144.67.254:3000/api/collection_points/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
         loadCollectionPoints();
       } catch (err) {

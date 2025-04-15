@@ -92,7 +92,7 @@
   <script>
     async function loadWasteTypes() {
       try {
-        const response = await fetch('http://localhost:3000/api/waste_types');
+        const response = await fetch('http://45.144.67.254:3000/api/waste_types');
         if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
         const types = await response.json();
         const tbody = document.querySelector('#typesTable tbody');
@@ -123,7 +123,7 @@
         return;
       }
       try {
-        const response = await fetch('http://localhost:3000/api/waste_types', {
+        const response = await fetch('http://45.144.67.254:3000/api/waste_types', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type_name: typeName, description: typeDesc })
@@ -145,7 +145,7 @@
       if(newName === null) return;
       const newDesc = prompt("Введите новое описание", currentDesc);
       try {
-        const response = await fetch(`http://localhost:3000/api/waste_types/${id}`, {
+        const response = await fetch(`http://45.144.67.254:3000/api/waste_types/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type_name: newName, description: newDesc })
@@ -160,7 +160,7 @@
     async function deleteType(id) {
       if (!confirm("Удалить эту категорию?")) return;
       try {
-        const response = await fetch(`http://localhost:3000/api/waste_types/${id}`, {
+        const response = await fetch(`http://45.144.67.254:3000/api/waste_types/${id}`, {
           method: 'DELETE'
         });
         if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
