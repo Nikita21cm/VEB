@@ -54,9 +54,10 @@
     <p>&copy; 2025 EcoNova Hub</p>
   </footer>
   <script>
+    const apiLink = "http://eco-hub.econova-hub.ru"
     async function loadCollectionPoints(query = "") {
       try {
-        let url = 'http://45.144.67.254:3000/api/collection_points';
+        let url = `${apiLink}/api/collection_points`;
         if(query) { url += `?q=${encodeURIComponent(query)}`; }
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
@@ -84,7 +85,7 @@
       const location = document.getElementById('pointLocation').value;
       const capacity = document.getElementById('pointCapacity').value;
       try {
-        const response = await fetch('http://45.144.67.254:3000/collection_points', {
+        const response = await fetch(`${apiLink}/collection_points`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ location, capacity })
@@ -107,7 +108,7 @@
       const newCapacity = prompt("Новая вместимость", currentCapacity);
       if(newCapacity === null) return;
       try {
-        const response = await fetch(`http://45.144.67.254:3000/api/collection_points/${id}`, {
+        const response = await fetch(`${apiLink}/api/collection_points/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ location: newLocation, capacity: newCapacity })
@@ -122,7 +123,7 @@
     async function deletePoint(id) {
       if(!confirm("Удалить этот центр?")) return;
       try {
-        const response = await fetch(`http://45.144.67.254:3000/api/collection_points/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${apiLink}/api/collection_points/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
         loadCollectionPoints();
       } catch (err) {
